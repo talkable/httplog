@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'faraday'
+require 'rest-client'
 class RestClientAdapter < HTTPBaseAdapter
   def send_get_request
     RestClient.get(parse_uri(true).to_s, @headers)
