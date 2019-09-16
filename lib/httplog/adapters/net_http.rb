@@ -16,7 +16,7 @@ module Net
         HttpLog.call(
           method: req.method,
           url: url,
-          request_body: req.body.nil? || req.body.empty? ? body : req.body,
+          request_body: request_body(req, body),
           request_headers: req.each_header.collect,
           response_code: @response.code,
           response_body: @response.body,
@@ -34,6 +34,21 @@ module Net
       HttpLog.log_connection(@address, @port) if !started? && HttpLog.url_approved?("#{@address}:#{@port}")
 
       orig_connect
+    end
+
+    private
+
+    def request_body(req, body)
+      stream = req.body_stream
+      if stream
+        stream.to_s # read and rewind for RestClient::Payload::Base
+        stream.rewind if stream.respond_to?(:rewind) # RestClient::Payload::Base has no method rewind
+        stream.read
+      elsif req.body.nil? || req.body.empty?
+        body
+      else
+        req.body
+      end
     end
   end
 end
